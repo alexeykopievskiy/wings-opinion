@@ -37,6 +37,10 @@
   .agree-chart svg {
     border-bottom: 6px solid rgb(200, 200, 200);
   }
+
+  .brush .extent {
+    opacity: .125
+  }
 }
   </style>
 
@@ -64,77 +68,91 @@
       avatar: faker.internet.avatar(),
       id: faker.commerce.product().toLowerCase()
     }
-
     array.push(object)
   }
+
   var data = {
     children: array
   }
 
   var xScale = d3.scale.linear()
-    .domain([0, 1])
-    .range([0, 400]);
+    .range([0, 1140]);
 
-var yScale = d3.scale.linear()
-    .domain([0, 1])
-    .range([400, 0]);
+  var yScale = d3.scale.linear()
+    .range([0, 300]);
 
 
-var brush = d3.svg.brush()
+  var brush = d3.svg.brush()
     .x(xScale)
     .y(yScale)
     .on("brushstart", brushstart)
-    //.on("brushend", brushend);
+    .on("brushend", brushend);
 
-      var width = 1140,
-        height = 300,
-        color = d3.scale.category20();
+  var width = 1140,
+    height = 300,
+    color = d3.scale.category20();
 
-      var canvas = d3.select("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .style("position", "relative")
-        .attr("class", "bubble-range")
-        //.append("g")
-
-
-      var pack = d3.layout.pack()
-        .size([width, height])
-        .padding(2);
-
-      var nodes = pack.nodes(data);
-      //console.log(data, 'nodes')
-
-      var bru = d3.select("svg")
-      .append("g")
-        .attr("class", "brush")
-        .call(brush)
+  var canvas = d3.select("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .style("position", "relative")
+    .attr("class", "bubble-range")
 
 
-      var node = canvas.selectAll(".node")
-        .data(prepare(nodes))
-        .enter()
-        .append("g")
-        .attr("transform", function(d) {
-          return (d.depth !== 0) ? "translate(" + d.x + ", " + d.y + ")" : "translate(" + -999 + ", " + -999 + ")";
-        });
+  var pack = d3.layout.pack()
+    .size([width, height])
+    .padding(2);
 
-      function brushstart(){
-        d3.selectAll("circle")
-          .classed("highlight", false);
+  var nodes = pack.nodes(data);
+
+  var bru = d3.select("svg")
+  .append("g")
+    .attr("class", "brush")
+    .call(brush)
+
+
+  var handle = bru.selectAll(".handle--custom")
+    .data([{type: "w"}, {type: "e"}])
+    .enter().append("path")
+      .attr("class", "handle--custom")
+      .attr("fill", "#666")
+      .attr("fill-opacity", 0.8)
+      .attr("stroke", "#000")
+      .attr("stroke-width", 1.5)
+      .attr("cursor", "ew-resize")
+
+
+  var node = canvas.selectAll(".node")
+    .data(prepare(nodes))
+    .enter()
+    .append("g")
+    .attr("transform", function(d) {
+      return (d.depth !== 0) ? "translate(" + d.x + ", " + d.y + ")" : "translate(" + -999 + ", " + -999 + ")";
+    });
+
+    function brushstart(){
+      d3.selectAll("circle")
+        .classed("highlight", false);
     }
 
-      console.log('fff', brush)
+    function brushend(){
+        var e = brush.extent();
+        d3.selectAll("circle").filter(function(d){
+            return xScale(d.x) >= xScale(e[0][0]) &&
+                   yScale(d.y) <= yScale(e[0][1]) &&
+                   xScale(d.x) <= xScale(e[1][0]) &&
+                   yScale(d.y) >= yScale(e[1][1]);
+        })
+        .classed("highlight", true);
+    }
 
-      var defs = node.append("defs")
-      /*var pattern = defs.append("pattern")*/
+    var defs = node.append("defs")
       .append("svg:pattern")
       .attr("id", function(d) {
         return d.id;
       })
       .attr("width", 20)
       .attr("height", 20)
-      //.attr("patternUnits", "userSpaceOnUse")
       .append("svg:image")
       .attr("xlink:href", function(d) {
         return d.avatar
@@ -144,58 +162,40 @@ var brush = d3.svg.brush()
       .attr("x", 0)
       .attr("y", 0);
 
-      var circle = node.append("circle")
-        .attr("r", function(d) { return 0;})
-        /*.attr("fill", function(d) {
-          return color(d.value);
-        })*/
-        .attr("cx", 20)
-        .attr("cy", 20)
-        .attr("fill", function(d) {
-          return "url(#" + d.id + ")"
-        })
-        .attr("r", function (d) { return d.r; })
-        .on("mouseover", function(d){
-          /*console.log('1')
-          console.log($(this).next()[0], 'next')*/
-          d3.select($(this).next()[0])
-          .style('visibility', 'visible')
-        })
-       .on("mouseout", function(){
-          //console.log('2')
-          d3.select($(this).next()[0])
-          .style('visibility', 'hidden')
-       });
+    var circle = node.append("circle")
+      .attr("r", function(d) { return 0;})
+      .attr("cx", 20)
+      .attr("cy", 20)
+      .attr("fill", function(d) {
+        return "url(#" + d.id + ")"
+      })
+      .attr("r", function (d) { return d.r; })
+      .on("mouseover", function(d){
+        d3.select($(this).next()[0])
+        .style('visibility', 'visible')
+      })
+     .on("mouseout", function(){
+        d3.select($(this).next()[0])
+        .style('visibility', 'hidden')
+     })
+     .on("click", function() {
+       d3.selectAll(".brush").call(brush.clear());
+     });
 
-       var text = node.append("text")
-         .text(function(d) {
-           //console.log(d, 'd')
-           return "lol"
-         })
-         .style('visibility', 'hidden')
+     var text = node.append("text")
+       .text(function(d) {
+         return "lol"
+       })
+       .style('visibility', 'hidden')
 
-
-
-
-
-      //console.log(node, 'node')
-      /*circle.on("mouseover", function(d){
-       console.log('test lol over', d)
-       return tooltip.style("visibility", "visible");
-       })*/
-
-       function prepare(object) {
-        /*console.log(object.length, 'len')
-        console.log(object, 'meee')*/
+     function prepare(object) {
         for(var key = 0; key < object.length; key++){
-          object[key].y = 265
-          object[key].x = object[key].sum
-          object[key].r = 10
-          //console.log(object[key], 'olololol')
+            object[key].y = 265
+            object[key].x = object[key].sum
+            object[key].r = 10
         }
-
         return object
-      }
+    }
 
   </script>
 </body>
