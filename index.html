@@ -22,6 +22,11 @@
     left: -12px;
     bottom: 4px;
   }
+  .highlight {
+    stroke: red;
+  }
+  rect { fill:#69c; stroke:#069; stroke-width:5px; opacity:0.5 }
+svg div { text-align:center; line-height:150px }
   .agree-chart::before{
     border-style: solid;
     border-width: 3px 0 3px 12px;
@@ -41,6 +46,13 @@
   .brush .extent {
     opacity: .125
   }
+
+  .circle-text {
+    fill: #f6f7f9;
+    box-shadow: #b5b5b5 0 1px 1px 0px;
+    padding: 8px;
+    border-radius: 16px;
+  }
 }
   </style>
 
@@ -56,11 +68,12 @@
   <script src="https://d3js.org/d3.v3.js"></script>
   <script type="text/javascript" src="faker.js"></script>
   <script type="text/javascript" src="index.js"></script>
+  <script src='lodash.js'></script>
   <script type="text/javascript">
 
   var array = []
 
-  for(var i = 0; i <= 50; i++) {
+  for(var i = 0; i <= 20; i++) {
     var object = {
       name: faker.name.findName(),
       date: faker.date.future().getTime(),
@@ -71,22 +84,26 @@
     array.push(object)
   }
 
+  var arr = _.sortBy(array, ['sum'])
+  //console.log(arr)
+  var blockValue = 1000
+
   var data = {
-    children: array
+    children: arr
   }
 
-  var xScale = d3.scale.linear()
+  /*var xScale = d3.scale.linear()
     .range([0, 1140]);
 
   var yScale = d3.scale.linear()
     .range([0, 300]);
 
-
   var brush = d3.svg.brush()
     .x(xScale)
     .y(yScale)
     .on("brushstart", brushstart)
-    .on("brushend", brushend);
+    .on("brush", brushmove)
+    .on("brushend", brushend);*/
 
   var width = 1140,
     height = 300,
@@ -105,46 +122,22 @@
 
   var nodes = pack.nodes(data);
 
-  var bru = d3.select("svg")
+  /*var bru = d3.select("svg")
   .append("g")
     .attr("class", "brush")
-    .call(brush)
-
-
-  var handle = bru.selectAll(".handle--custom")
-    .data([{type: "w"}, {type: "e"}])
-    .enter().append("path")
-      .attr("class", "handle--custom")
-      .attr("fill", "#666")
-      .attr("fill-opacity", 0.8)
-      .attr("stroke", "#000")
-      .attr("stroke-width", 1.5)
-      .attr("cursor", "ew-resize")
+    .call(brush)*/
 
 
   var node = canvas.selectAll(".node")
-    .data(prepare(nodes))
+    .data(prepare(nodes/*, blockValue*/))
     .enter()
     .append("g")
     .attr("transform", function(d) {
       return (d.depth !== 0) ? "translate(" + d.x + ", " + d.y + ")" : "translate(" + -999 + ", " + -999 + ")";
     });
 
-    function brushstart(){
-      d3.selectAll("circle")
-        .classed("highlight", false);
-    }
 
-    function brushend(){
-        var e = brush.extent();
-        d3.selectAll("circle").filter(function(d){
-            return xScale(d.x) >= xScale(e[0][0]) &&
-                   yScale(d.y) <= yScale(e[0][1]) &&
-                   xScale(d.x) <= xScale(e[1][0]) &&
-                   yScale(d.y) >= yScale(e[1][1]);
-        })
-        .classed("highlight", true);
-    }
+
 
     var defs = node.append("defs")
       .append("svg:pattern")
@@ -174,28 +167,95 @@
         d3.select($(this).next()[0])
         .style('visibility', 'visible')
       })
+      /*.on("mousemove", function(d){
+        d3.select($(this).next()[0])
+        .style('top', '10px')
+      })*/
      .on("mouseout", function(){
         d3.select($(this).next()[0])
         .style('visibility', 'hidden')
      })
      .on("click", function() {
-       d3.selectAll(".brush").call(brush.clear());
+       //d3.selectAll(".brush").call(brush.clear());
+       //d3.select(this).classed("highlight", true);
      });
 
-     var text = node.append("text")
+     var text = node.append("rect")
+     .style('visibility', 'hidden')
+     .style('pointer-events', 'none')
+     .attr("width", '100')
+     .attr("height", '30')
+     .attr("y", '-30')
+     .append("text")
        .text(function(d) {
-         return "lol"
+         return d.name + " is voted for " + d.sum + " BTC"
        })
-       .style('visibility', 'hidden')
+       .attr("class", "circle-text")
 
      function prepare(object) {
-        for(var key = 0; key < object.length; key++){
-            object[key].y = 265
-            object[key].x = object[key].sum
-            object[key].r = 10
+
+      var windowSizePX = 1140;
+      var countBlocks = 12;
+      var blockValue = 1000;
+      var blockSizePercent = Math.round((100 / countBlocks) * 1000) / 1000
+      var diapasonsArray = []
+
+      // range diapasons
+      for(var key = 0; key < 12; key++) {
+        diapasonsArray.push([blockSizePercent * key, blockSizePercent * (key + 1)])
+      }
+
+      // calculate percents
+      for(var key = 0; key < object.length; key++){
+        object[key].percent = object[key].sum * 100 / blockValue;
+          object[key].x = object[key].sum
+          object[key].r = 10
+          object[key].y = 265
+      }
+
+      // remember block number for each element
+      for(var key = 0; key < object.length; key++){
+        for(var j = 0; j < diapasonsArray.length; j++) {
+          //console.log(j, object[key].percent)
+          if(object[key].percent >= diapasonsArray[j][0] && object[key].percent <= diapasonsArray[j][1]) {
+            //console.log(object[key].percent, diapasonsArray[j][0], diapasonsArray[j][1], 'true')
+            //console.log(true, j)
+            object[key].blockNumber = j
+          }
+          else {
+            //console.log(object[key].percent, diapasonsArray[j][0], diapasonsArray[j][1], 'false')
+            //console.log(false);
+          }
         }
+      }
+
+      console.log(object, 'oibj')
+
+
+
         return object
     }
+
+    /*brushstart();
+brushmove();
+
+    function brushstart() {
+  canvas.classed("selecting", true);
+}
+
+function brushmove() {
+  var s = brush.extent();
+  node.classed("selected", function(d) {
+    return xScale(d.x) >= xScale(s[0][0]) &&
+                   yScale(d.y) <= yScale(s[0][1]) &&
+                   xScale(d.x) <= xScale(s[1][0]) &&
+                   yScale(d.y) >= yScale(s[1][1]);
+  });
+}
+
+function brushend() {
+  canvas.classed("selecting", !d3.event.target.empty());
+}*/
 
   </script>
 </body>
