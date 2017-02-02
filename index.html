@@ -73,7 +73,7 @@ svg div { text-align:center; line-height:150px }
 
   var array = []
 
-  for(var i = 0; i <= 20; i++) {
+  for(var i = 0; i <= 50; i++) {
     var object = {
       name: faker.name.findName(),
       date: faker.date.future().getTime(),
@@ -180,7 +180,7 @@ svg div { text-align:center; line-height:150px }
        //d3.select(this).classed("highlight", true);
      });
 
-     var text = node.append("rect")
+     /*var text = node.append("rect")
      .style('visibility', 'hidden')
      .style('pointer-events', 'none')
      .attr("width", '100')
@@ -190,7 +190,7 @@ svg div { text-align:center; line-height:150px }
        .text(function(d) {
          return d.name + " is voted for " + d.sum + " BTC"
        })
-       .attr("class", "circle-text")
+       .attr("class", "circle-text")*/
 
      function prepare(object) {
 
@@ -204,11 +204,12 @@ svg div { text-align:center; line-height:150px }
       for(var key = 0; key < 12; key++) {
         diapasonsArray.push([blockSizePercent * key, blockSizePercent * (key + 1)])
       }
+      console.log(diapasonsArray)
 
       // calculate percents
       for(var key = 0; key < object.length; key++){
         object[key].percent = object[key].sum * 100 / blockValue;
-          object[key].x = object[key].sum
+          //object[key].x = object[key].sum
           object[key].r = 10
           object[key].y = 265
       }
@@ -216,20 +217,47 @@ svg div { text-align:center; line-height:150px }
       // remember block number for each element
       for(var key = 0; key < object.length; key++){
         for(var j = 0; j < diapasonsArray.length; j++) {
-          //console.log(j, object[key].percent)
           if(object[key].percent >= diapasonsArray[j][0] && object[key].percent <= diapasonsArray[j][1]) {
-            //console.log(object[key].percent, diapasonsArray[j][0], diapasonsArray[j][1], 'true')
-            //console.log(true, j)
             object[key].blockNumber = j
           }
           else {
-            //console.log(object[key].percent, diapasonsArray[j][0], diapasonsArray[j][1], 'false')
-            //console.log(false);
+          }
+          object[key].test = object[key].blockNumber * (blockSizePercent * (windowSizePX / 100))
+          /*if(object[key].test === object[key - 1].test) {
+            console.log(object[key].x, 'xyi')
+          }*/
+
+          if(key !== 0) {
+            if(object[key].test === object[key - 1].test) {
+              object[key].x = object[key].blockNumber * (blockSizePercent * (windowSizePX / 100)) + (22 * (key - 1))
+
+              //console.log(object[key].x, 'xyi')
+            }
+            else {
+              object[key].x = object[key].blockNumber * (blockSizePercent * (windowSizePX / 100))
+              //console.log(object[key].x, 'iyx')
+            }
+          }
+          //console.log(object[key].x, 'x')
+        }
+      }
+
+      for(var key = 0, i = 0; key < object.length; key++) {
+        if(key !== 0) {
+          if(object[key].test === object[key - 1].test) {
+            i++
+            console.log(i, 'i')
+            if(i === 4) {
+              object[key].y = 245
+              console.log('fuck')
+              i = 0
+            }
           }
         }
       }
 
-      console.log(object, 'oibj')
+
+      //console.log(object, 'oibj')
 
 
 
