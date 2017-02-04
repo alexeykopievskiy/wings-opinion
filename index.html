@@ -61,6 +61,11 @@
     padding: 8px;
     border-radius: 16px;
   }
+
+  .texx {
+    display: block;
+    background-color: #ddd;
+  }
 }
   </style>
 
@@ -120,6 +125,7 @@
     .data(prepare(nodes))
     .enter()
     .append("g")
+    .style('z-index', '1')
     .attr("transform", function(d) {
       return (d.depth !== 0) ? "translate(" + d.x + ", " + d.y + ")" : "translate(" + -999 + ", " + -999 + ")";
     });
@@ -144,16 +150,28 @@
       .attr("r", function(d) { return 0;})
       .attr("cx", 10)
       .attr("cy", 20)
+      .attr("id", function(e) {
+        return +e.sum
+      })
+      .style('z-index', '10')
       .attr("x", function() {
         return tt
       })
       .attr("fill", function(d) {
         return "url(#" + d.id + ")"
+        //return "blue"
       })
       .attr("r", function (d) { return d.r; })
-      .on("mouseover", function(){
+      .on("mouseover", function(e){
+
+        console.log(e)
+
         d3.select($(this).next()[0])
         .style('visibility', 'visible')
+        .attr("id", function(e) {
+          return +e.sum + 1000
+        })
+
         d3.select($(this).next().next()[0])
         .style('visibility', 'visible')
       })
@@ -167,17 +185,16 @@
 
      });
 
-     var text = node.append("rect")
-      .style('visibility', 'hidden')
-      .style('pointer-events', 'none')
-      .attr("width", '100')
-      .attr("height", '30')
-
      var foreignObject = node.append("svg:foreignObject")
      .style('visibility', 'hidden')
+     .style('pointer-events', 'none')
+     .style('z-index', '100')
      .attr("width", '100')
      .attr("height", '30')
+     .attr("x", '0')
+     .attr("y", '0')
      .append('xhtml:p')
+     .attr("class", "texx")
        .text(function(d) {
          return d.name + " is voted for " + d.sum + " BTC"
        })
