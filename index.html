@@ -238,19 +238,26 @@ svg div { text-align:center; line-height:150px }
         // Проверка на NaN (у одного их пользоваетлей по какой то причине координата X = NaN)
         if(isNaN(object[i].x)) object[i].x = 0;
 
+        var x = object[i].x;
+
         // Если смещение объекта по x равно предыдущему
-        if(object[i].x === previous_x) {
+        if(x === previous_x) {
           // Увеличиваем смещение для оъекта
           offset += 20;
           // Сдвигаем объект по y
           object[i].y -= offset;
+
+          // Для шахматного порядка
+          if(offset % 40 !== 0){
+            object[i].x += 10;
+          }
         }
         else {
           // Сбрасываем смещение
           offset = 0;
         }
 
-        previous_x = object[i].x;
+        previous_x = x;
 
         //console.log(x, 'x')
         //x_vals[x] = x in x_vals ? x_vals[x] + offset : object.y;
