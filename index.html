@@ -25,8 +25,16 @@
   .highlight {
     stroke: red;
   }
-  rect { fill:#69c; stroke:#069; stroke-width:5px; opacity:0.5 }
-svg div { text-align:center; line-height:150px }
+  rect {
+    fill:#f6f7f9;
+    stroke:#b5b5b5;
+    stroke-width:1px;
+    opacity:1
+  }
+  svg div {
+    text-align:center;
+    line-height:150px
+  }
   .agree-chart::before{
     border-style: solid;
     border-width: 3px 0 3px 12px;
@@ -71,6 +79,7 @@ svg div { text-align:center; line-height:150px }
   <script type="text/javascript">
 
   var array = []
+  var tt = 0
 
   for(var i = 0; i <= 90; i++) {
     var object = {
@@ -115,9 +124,6 @@ svg div { text-align:center; line-height:150px }
       return (d.depth !== 0) ? "translate(" + d.x + ", " + d.y + ")" : "translate(" + -999 + ", " + -999 + ")";
     });
 
-
-
-
     var defs = node.append("defs")
       .append("svg:pattern")
       .attr("id", function(d) {
@@ -138,48 +144,43 @@ svg div { text-align:center; line-height:150px }
       .attr("r", function(d) { return 0;})
       .attr("cx", 10)
       .attr("cy", 20)
+      .attr("x", function() {
+        return tt
+      })
       .attr("fill", function(d) {
         return "url(#" + d.id + ")"
       })
       .attr("r", function (d) { return d.r; })
-      .on("mouseover", function(d){
+      .on("mouseover", function(){
         d3.select($(this).next()[0])
+        .style('visibility', 'visible')
+        d3.select($(this).next().next()[0])
         .style('visibility', 'visible')
       })
      .on("mouseout", function(){
         d3.select($(this).next()[0])
+        .style('visibility', 'hidden')
+        d3.select($(this).next().next()[0])
         .style('visibility', 'hidden')
      })
      .on("click", function() {
 
      });
 
-     function contains(needle) {
-          // Per spec, the way to identify NaN is that it is not equal to itself
-          var findNaN = needle !== needle;
-          var indexOf;
+     var text = node.append("rect")
+      .style('visibility', 'hidden')
+      .style('pointer-events', 'none')
+      .attr("width", '100')
+      .attr("height", '30')
 
-          if(!findNaN && typeof Array.prototype.indexOf === 'function') {
-              indexOf = Array.prototype.indexOf;
-          } else {
-              indexOf = function(needle) {
-                  var i = -1, index = -1;
-
-                  for(i = 0; i < this.length; i++) {
-                      var item = this[i];
-
-                      if((findNaN && item !== item) || item === needle) {
-                          index = i;
-                          break;
-                      }
-                  }
-
-                  return index;
-              };
-          }
-
-          return indexOf.call(this, needle) > -1;
-      };
+     var foreignObject = node.append("svg:foreignObject")
+     .style('visibility', 'hidden')
+     .attr("width", '100')
+     .attr("height", '30')
+     .append('xhtml:p')
+       .text(function(d) {
+         return d.name + " is voted for " + d.sum + " BTC"
+       })
 
      function prepare(object) {
 
@@ -189,14 +190,12 @@ svg div { text-align:center; line-height:150px }
       var blockValue = 1000;
       var blockSizePercent = Math.round((100 / countBlocks) * 1000) / 1000
 
-      console.log(blockSizePercent, 'ele')
       var diapasonsArray = []
 
       // range diapasons
       for(var key = 0; key < countBlocks; key++) {
         diapasonsArray.push([blockSizePercent * key, blockSizePercent * (key + 1)])
       }
-      console.log(diapasonsArray)
 
       // calculate percents
       for(var key = 0; key < object.length; key++){
