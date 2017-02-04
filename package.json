@@ -1,0 +1,25 @@
+{
+  "name": "d3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node_modules/http-server/bin/http-server",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexeykopievskiy/wings-opinion.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alexeykopievskiy/wings-opinion/issues"
+  },
+  "homepage": "https://github.com/alexeykopievskiy/wings-opinion#readme",
+  "dependencies": {
+    "faker": "^3.1.0",
+    "http-server": "^0.9.0",
+    "lodash": "^4.17.4"
+  }
+}
