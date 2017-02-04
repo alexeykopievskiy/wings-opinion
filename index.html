@@ -72,7 +72,7 @@ svg div { text-align:center; line-height:150px }
 
   var array = []
 
-  for(var i = 0; i <= 50; i++) {
+  for(var i = 0; i <= 90; i++) {
     var object = {
       name: faker.name.findName(),
       date: faker.date.future().getTime(),
@@ -189,14 +189,12 @@ svg div { text-align:center; line-height:150px }
       var blockValue = 1000;
       var blockSizePercent = Math.round((100 / countBlocks) * 1000) / 1000
 
-      console.log(blockSizePercent, 'ele')
       var diapasonsArray = []
 
       // range diapasons
       for(var key = 0; key < countBlocks; key++) {
         diapasonsArray.push([blockSizePercent * key, blockSizePercent * (key + 1)])
       }
-      console.log(diapasonsArray)
 
       // calculate percents
       for(var key = 0; key < object.length; key++){
@@ -220,51 +218,19 @@ svg div { text-align:center; line-height:150px }
         }
       }
 
-      /*
-      var offset = 10;
-      var x_vals = [];
-
-      function isInArray(value, array) {
-        return array.indexOf(value) > -1;
-      }
-
-      var ttt = [1, 2, 4];
-*/
       var previous_x = -1;
       var offset = 0;
 
       for( var i = 0; i < object.length; i++ ){
-
-        // Проверка на NaN (у одного их пользоваетлей по какой то причине координата X = NaN)
         if(isNaN(object[i].x)) object[i].x = 0;
-
-        // Если смещение объекта по x равно предыдущему
         if(object[i].x === previous_x) {
-          // Увеличиваем смещение для оъекта
           offset += 20;
-          // Сдвигаем объект по y
           object[i].y -= offset;
         }
         else {
-          // Сбрасываем смещение
           offset = 0;
         }
-
         previous_x = object[i].x;
-
-        //console.log(x, 'x')
-        //x_vals[x] = x in x_vals ? x_vals[x] + offset : object.y;
-        //x_vals[x] = _.has(x_vals, x) ? x_vals[x] + offset : object.y;
-        /*if(isInArray(i, ttt)) {
-          //x_vals[x] = x_vals[x] + offset
-          console.log('test')
-        }
-        else {
-          //x_vals[x] = object[i].y
-          console.log('lol');
-        }*/
-        //console.log(x_vals[x], 'vals')
-        //object[i].y = x_vals[x] // обновляем значение y в объекте
       }
 
         return object
