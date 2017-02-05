@@ -224,7 +224,7 @@
       var offset = 0;
 
       for( var i = 0; i < object.length; i++ ){
-        if(isNaN(object[i].x)) object[i].x = 0;
+        if(isNaN(object[i].x)) object[i].x = object[i].blockNumber * 20;
         var x = object[i].x;
         if(x === previous_x) {
           offset += 20;
