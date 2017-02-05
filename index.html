@@ -25,11 +25,13 @@
     stroke: red;
   }
   div.tooltip {
-        position: absolute;
-        padding: 4px;
-        background: white;
-        border: 1px solid black;
-        border-radius: 2px;
+    position: absolute;
+    padding: 4px;
+    background: #f6f7f9;
+    box-shadow: #b5b5b5 0 1px 1px 0px;
+    padding: 8px;
+    border-radius: 16px;
+    border-radius: 2px;
     }
   rect {
     fill:#f6f7f9;
@@ -68,10 +70,6 @@
     border-radius: 16px;
   }
 
-  .texx {
-    display: block;
-    background-color: #ddd;
-  }
 }
   </style>
 
@@ -84,8 +82,8 @@
   integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
   crossorigin="anonymous"></script>
   <script src="https://d3js.org/d3.v3.js"></script>
-  <script src="node_modules/lodash/lodash.js"></script>
-  <script type="text/javascript" src="node_modules/faker/build/build/faker.js"></script>
+  <script src="lodash.js"></script>
+  <script type="text/javascript" src="faker.js"></script>
   <script type="text/javascript">
 
   var array = []
@@ -123,7 +121,7 @@
 
     var tooltip = d3.select(".agree-chart").append("div")
                     .attr("class", "tooltip")
-                    .style("opacity", 0);
+                    .style("display", "none");
 
 
 
@@ -174,14 +172,14 @@
       })
       .attr("r", function (d) { return d.r; })
       .on("mouseover", function(e){
-        tooltip.html("tooltip <br>is<strong>This is a text</strong>")
+        tooltip.html("" + e.name + " is voted for <br><strong>" + e.sum + " BTC</strong>")
           .style('top', d3.event.pageY - 6 + 'px')
           .style('left', d3.event.pageX + 14 + 'px')
-          .style("opacity", 1);
+          .style("display", "block");
 
       })
      .on("mouseout", function(){
-       tooltip.style("opacity", 0);
+       tooltip.style("display", "none");
      })
      .on("click", function() {
 
