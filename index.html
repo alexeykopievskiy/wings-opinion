@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="//rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
   <title>Document</title>
   <style>
   .agree-chart {
@@ -25,6 +24,13 @@
   .highlight {
     stroke: red;
   }
+  div.tooltip {
+        position: absolute;
+        padding: 4px;
+        background: white;
+        border: 1px solid black;
+        border-radius: 2px;
+    }
   rect {
     fill:#f6f7f9;
     stroke:#b5b5b5;
@@ -72,14 +78,12 @@
 </head>
 <body>
   <div class="agree-chart">
-    <svg width="960" height="500"></svg>
   </div>
   <script
   src="http://code.jquery.com/jquery-2.2.4.min.js"
   integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
   crossorigin="anonymous"></script>
   <script src="https://d3js.org/d3.v3.js"></script>
-  <script type="text/javascript" src="node_modules/faker/build/build/faker.js"></script>
   <script src="node_modules/lodash/lodash.js"></script>
   <script type="text/javascript">
 
@@ -88,11 +92,7 @@
 
   for(var i = 0; i <= 90; i++) {
     var object = {
-      name: faker.name.findName(),
-      date: faker.date.future().getTime(),
       sum: Math.floor(Math.random() * (1000 - 1 + 1)) + 1,
-      avatar: faker.internet.avatar(),
-      id: faker.commerce.product().toLowerCase()
     }
     array.push(object)
   }
@@ -108,11 +108,18 @@
     height = 300,
     color = d3.scale.category20();
 
-  var canvas = d3.select("svg")
+
+  var canvas = d3.select(".agree-chart")
+    .append("svg")
     .attr("width", width)
     .attr("height", height)
     .style("position", "relative")
     .attr("class", "bubble-range")
+
+    var tooltip = d3.select(".agree-chart").append("div")
+                    .attr("class", "tooltip")
+                    .style("opacity", 0);
+
 
 
   var pack = d3.layout.pack()
@@ -139,7 +146,7 @@
       .attr("height", 20)
       .append("svg:image")
       .attr("xlink:href", function(d) {
-        return d.avatar
+        //return d.avatar
       })
       .attr("width", 20)
       .attr("height", 20)
@@ -158,13 +165,16 @@
         return tt
       })
       .attr("fill", function(d) {
-        return "url(#" + d.id + ")"
-        //return "blue"
+        //return "url(#" + d.id + ")"
+        return "blue"
       })
       .attr("r", function (d) { return d.r; })
       .on("mouseover", function(e){
-
-        console.log(e)
+        tooltip.html("the color here<br>is<span style='color:;'><br>This is a text in that color</span>")
+                        .style('top', d3.event.pageY - 6 + 'px')
+                        .style('left', d3.event.pageX + 14 + 'px')
+                        .style("opacity", 1);
+        /*console.log(e)
 
         d3.select($(this).next()[0])
         .style('visibility', 'visible')
@@ -173,13 +183,14 @@
         })
 
         d3.select($(this).next().next()[0])
-        .style('visibility', 'visible')
+        .style('visibility', 'visible')*/
       })
      .on("mouseout", function(){
-        d3.select($(this).next()[0])
+       tooltip.style("opacity", 0);
+        /*d3.select($(this).next()[0])
         .style('visibility', 'hidden')
         d3.select($(this).next().next()[0])
-        .style('visibility', 'hidden')
+        .style('visibility', 'hidden')*/
      })
      .on("click", function() {
 
@@ -196,7 +207,8 @@
      .append('xhtml:p')
      .attr("class", "texx")
        .text(function(d) {
-         return d.name + " is voted for " + d.sum + " BTC"
+         //return d.name + " is voted for " + d.sum + " BTC"
+         return d.sum
        })
 
      function prepare(object) {
