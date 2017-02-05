@@ -66,8 +66,8 @@ svg div { text-align:center; line-height:150px }
   integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
   crossorigin="anonymous"></script>
   <script src="https://d3js.org/d3.v3.js"></script>
-  <script type="text/javascript" src="node_modules/faker/build/build/faker.js"></script>
-  <script src="node_modules/lodash/lodash.js"></script>
+  <script type="text/javascript" src="faker.js"></script>
+  <script src="lodash.js"></script>
   <script type="text/javascript">
 
   var array = []
@@ -83,10 +83,10 @@ svg div { text-align:center; line-height:150px }
     array.push(object)
   }
 
-  var arr = _.sortBy(array, ['sum'])
-  var blockValue = 1000
+  var arr = array//_.sortBy(array, ['sum'])
 
   console.log(arr, 'arr')
+  var blockValue = 1000
 
   var data = {
     children: arr
@@ -116,6 +116,8 @@ svg div { text-align:center; line-height:150px }
     .attr("transform", function(d) {
       return (d.depth !== 0) ? "translate(" + d.x + ", " + d.y + ")" : "translate(" + -999 + ", " + -999 + ")";
     });
+
+
 
 
     var defs = node.append("defs")
