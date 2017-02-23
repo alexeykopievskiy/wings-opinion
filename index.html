@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="//rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
   <title>Document</title>
   <style>
   .agree-chart {
@@ -25,8 +24,25 @@
   .highlight {
     stroke: red;
   }
-  rect { fill:#69c; stroke:#069; stroke-width:5px; opacity:0.5 }
-svg div { text-align:center; line-height:150px }
+  div.tooltip {
+    position: absolute;
+    padding: 4px;
+    background: #f6f7f9;
+    box-shadow: #b5b5b5 0 1px 1px 0px;
+    padding: 8px;
+    border-radius: 16px;
+    border-radius: 2px;
+  }
+  rect {
+    fill:#f6f7f9;
+    stroke:#b5b5b5;
+    stroke-width:1px;
+    opacity:1
+  }
+  svg div {
+    text-align:center;
+    line-height:150px
+  }
   .agree-chart::before{
     border-style: solid;
     border-width: 3px 0 3px 12px;
@@ -53,40 +69,53 @@ svg div { text-align:center; line-height:150px }
     padding: 8px;
     border-radius: 16px;
   }
+
 }
   </style>
 
 </head>
 <body>
   <div class="agree-chart">
-    <svg width="960" height="500"></svg>
   </div>
   <script
   src="http://code.jquery.com/jquery-2.2.4.min.js"
   integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
   crossorigin="anonymous"></script>
   <script src="https://d3js.org/d3.v3.js"></script>
-  <script type="text/javascript" src="node_modules/faker/build/build/faker.js"></script>
   <script src="node_modules/lodash/lodash.js"></script>
+  <script type="text/javascript" src="node_modules/faker/build/build/faker.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
+
+  </script>
   <script type="text/javascript">
 
   var array = []
+  var tt = 0
+
+  var pattern = GeoPattern.generate('GitHub');
+
+  console.log(pattern.toDataUrl(), 'pattern')
+
+  function generateImg(name) {
+    var pattern = GeoPattern.generate(name);
+    return pattern.toDataUri()
+  }
 
   for(var i = 0; i <= 90; i++) {
     var object = {
       name: faker.name.findName(),
       date: faker.date.future().getTime(),
-      sum: Math.floor(Math.random() * (1000 - 1 + 1)) + 1,
-      avatar: faker.internet.avatar(),
-      id: faker.commerce.product().toLowerCase()
+      avatar: generateImg(faker.name.findName()),
+      id: faker.commerce.product().toLowerCase(),
+      sum: Math.floor(Math.random() * (1000 - 1 + 1)) + 1
     }
     array.push(object)
   }
 
+  console.log(array, 'aaaa')
+
   var arr = _.sortBy(array, ['sum'])
   var blockValue = 1000
-
-  console.log(arr, 'arr')
 
   var data = {
     children: arr
@@ -96,11 +125,18 @@ svg div { text-align:center; line-height:150px }
     height = 300,
     color = d3.scale.category20();
 
-  var canvas = d3.select("svg")
+
+  var canvas = d3.select(".agree-chart")
+    .append("svg")
     .attr("width", width)
     .attr("height", height)
     .style("position", "relative")
     .attr("class", "bubble-range")
+
+    var tooltip = d3.select(".agree-chart").append("div")
+                    .attr("class", "tooltip")
+                    .style("display", "none");
+
 
 
   var pack = d3.layout.pack()
@@ -109,14 +145,24 @@ svg div { text-align:center; line-height:150px }
 
   var nodes = pack.nodes(data);
 
+  var x = d3.scale.identity().domain([0, width]);
+  var y = d3.scale.linear().range([height, 0]);
+
+    console.log(x, y)
+
+var brush = d3.svg.brush()
+    .x(x)
+    .y(y)
+
   var node = canvas.selectAll(".node")
     .data(prepare(nodes))
     .enter()
     .append("g")
+    .call(brush)
+    .style('z-index', '1')
     .attr("transform", function(d) {
       return (d.depth !== 0) ? "translate(" + d.x + ", " + d.y + ")" : "translate(" + -999 + ", " + -999 + ")";
     });
-
 
     var defs = node.append("defs")
       .append("svg:pattern")
@@ -138,48 +184,25 @@ svg div { text-align:center; line-height:150px }
       .attr("r", function(d) { return 0;})
       .attr("cx", 10)
       .attr("cy", 20)
-      .attr("fill", function(d) {
-        return "url(#" + d.id + ")"
+      .attr("id", function(e) {
+        return +e.sum
       })
+      .attr("fill", function(d) {
+            return "url(#" + d.id + ")"
+          })
+      .style('z-index', '10')
       .attr("r", function (d) { return d.r; })
-      .on("mouseover", function(d){
-        d3.select($(this).next()[0])
-        .style('visibility', 'visible')
+      .on("mouseover", function(e){
+        console.log(d3.element, 'elem')
+        tooltip.html("" + e.name + " is voted for <br><strong>" + e.sum + " BTC</strong>")
+          .style('top', d3.event.pageY - 6 + 'px')
+          .style('left', d3.event.pageX + 14 + 'px')
+          .style("display", "block");
       })
      .on("mouseout", function(){
-        d3.select($(this).next()[0])
-        .style('visibility', 'hidden')
+       tooltip.style("display", "none");
      })
-     .on("click", function() {
 
-     });
-
-     function contains(needle) {
-          // Per spec, the way to identify NaN is that it is not equal to itself
-          var findNaN = needle !== needle;
-          var indexOf;
-
-          if(!findNaN && typeof Array.prototype.indexOf === 'function') {
-              indexOf = Array.prototype.indexOf;
-          } else {
-              indexOf = function(needle) {
-                  var i = -1, index = -1;
-
-                  for(i = 0; i < this.length; i++) {
-                      var item = this[i];
-
-                      if((findNaN && item !== item) || item === needle) {
-                          index = i;
-                          break;
-                      }
-                  }
-
-                  return index;
-              };
-          }
-
-          return indexOf.call(this, needle) > -1;
-      };
 
      function prepare(object) {
 
@@ -218,19 +241,24 @@ svg div { text-align:center; line-height:150px }
         }
       }
 
+      // recalculate Y coord
       var previous_x = -1;
       var offset = 0;
 
       for( var i = 0; i < object.length; i++ ){
-        if(isNaN(object[i].x)) object[i].x = 0;
-        if(object[i].x === previous_x) {
+        if(isNaN(object[i].x)) object[i].x = object[i].blockNumber * 20;
+        var x = object[i].x;
+        if(x === previous_x) {
           offset += 20;
           object[i].y -= offset;
+          if(offset % 40 !== 0){
+            object[i].x += 10;
+          }
         }
         else {
           offset = 0;
         }
-        previous_x = object[i].x;
+        previous_x = x;
       }
 
         return object
