@@ -84,21 +84,35 @@
   <script src="https://d3js.org/d3.v3.js"></script>
   <script src="node_modules/lodash/lodash.js"></script>
   <script type="text/javascript" src="node_modules/faker/build/build/faker.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
+
+  </script>
   <script type="text/javascript">
 
   var array = []
   var tt = 0
 
+  var pattern = GeoPattern.generate('GitHub');
+
+  console.log(pattern.toDataUrl(), 'pattern')
+
+  function generateImg(name) {
+    var pattern = GeoPattern.generate(name);
+    return pattern.toDataUri()
+  }
+
   for(var i = 0; i <= 90; i++) {
     var object = {
       name: faker.name.findName(),
       date: faker.date.future().getTime(),
-      avatar: faker.internet.avatar(),
+      avatar: generateImg(faker.name.findName()),
       id: faker.commerce.product().toLowerCase(),
       sum: Math.floor(Math.random() * (1000 - 1 + 1)) + 1
     }
     array.push(object)
   }
+
+  console.log(array, 'aaaa')
 
   var arr = _.sortBy(array, ['sum'])
   var blockValue = 1000
@@ -163,15 +177,13 @@
       .attr("id", function(e) {
         return +e.sum
       })
-      .style('z-index', '10')
-      .attr("x", function() {
-        return tt
-      })
       .attr("fill", function(d) {
-        return "url(#" + d.id + ")"
-      })
+            return "url(#" + d.id + ")"
+          })
+      .style('z-index', '10')
       .attr("r", function (d) { return d.r; })
       .on("mouseover", function(e){
+        console.log(d3.element, 'elem')
         tooltip.html("" + e.name + " is voted for <br><strong>" + e.sum + " BTC</strong>")
           .style('top', d3.event.pageY - 6 + 'px')
           .style('left', d3.event.pageX + 14 + 'px')
