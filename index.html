@@ -54,28 +54,28 @@
     right: -12px;
     bottom: 4px;
   }
-
   .agree-chart svg {
     border-bottom: 6px solid rgb(200, 200, 200);
   }
-
   .brush .extent {
-    opacity: .125
+    stroke: #faf;
+    fill-opacity: .125;
+    background-color: red
   }
-
   .circle-text {
     fill: #f6f7f9;
     box-shadow: #b5b5b5 0 1px 1px 0px;
     padding: 8px;
     border-radius: 16px;
   }
-
 }
   </style>
 
 </head>
 <body>
   <div class="agree-chart">
+  </div>
+  <div id="names">
   </div>
   <script
   src="http://code.jquery.com/jquery-2.2.4.min.js"
@@ -84,186 +84,240 @@
   <script src="https://d3js.org/d3.v3.js"></script>
   <script src="node_modules/lodash/lodash.js"></script>
   <script type="text/javascript" src="node_modules/faker/build/build/faker.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
-
-  </script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
   <script type="text/javascript">
 
-  var array = []
-  var tt = 0
+    var array = []
+    var tt = 0
 
-  var pattern = GeoPattern.generate('GitHub');
+    var pattern = GeoPattern.generate('GitHub');
 
-  console.log(pattern.toDataUrl(), 'pattern')
+    console.log(pattern.toDataUrl(), 'pattern')
 
-  function generateImg(name) {
-    var pattern = GeoPattern.generate(name);
-    return pattern.toDataUri()
-  }
-
-  for(var i = 0; i <= 90; i++) {
-    var object = {
-      name: faker.name.findName(),
-      date: faker.date.future().getTime(),
-      avatar: generateImg(faker.name.findName()),
-      id: faker.commerce.product().toLowerCase(),
-      sum: Math.floor(Math.random() * (1000 - 1 + 1)) + 1
+    function generateImg(name) {
+      var pattern = GeoPattern.generate(name);
+      return pattern.toDataUri()
     }
-    array.push(object)
-  }
 
-  console.log(array, 'aaaa')
-
-  var arr = _.sortBy(array, ['sum'])
-  var blockValue = 1000
-
-  var data = {
-    children: arr
-  }
-
-  var width = 1140,
-    height = 300,
-    color = d3.scale.category20();
-
-
-  var canvas = d3.select(".agree-chart")
-    .append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .style("position", "relative")
-    .attr("class", "bubble-range")
-
-    var tooltip = d3.select(".agree-chart").append("div")
-                    .attr("class", "tooltip")
-                    .style("display", "none");
-
-
-
-  var pack = d3.layout.pack()
-    .size([width, height])
-    .padding(2);
-
-  var nodes = pack.nodes(data);
-
-  var x = d3.scale.identity().domain([0, width]);
-  var y = d3.scale.linear().range([height, 0]);
-
-    console.log(x, y)
-
-var brush = d3.svg.brush()
-    .x(x)
-    .y(y)
-
-  var node = canvas.selectAll(".node")
-    .data(prepare(nodes))
-    .enter()
-    .append("g")
-    .call(brush)
-    .style('z-index', '1')
-    .attr("transform", function(d) {
-      return (d.depth !== 0) ? "translate(" + d.x + ", " + d.y + ")" : "translate(" + -999 + ", " + -999 + ")";
-    });
-
-    var defs = node.append("defs")
-      .append("svg:pattern")
-      .attr("id", function(d) {
-        return d.id;
-      })
-      .attr("width", 20)
-      .attr("height", 20)
-      .append("svg:image")
-      .attr("xlink:href", function(d) {
-        return d.avatar
-      })
-      .attr("width", 20)
-      .attr("height", 20)
-      .attr("x", 0)
-      .attr("y", 0);
-
-    var circle = node.append("circle")
-      .attr("r", function(d) { return 0;})
-      .attr("cx", 10)
-      .attr("cy", 20)
-      .attr("id", function(e) {
-        return +e.sum
-      })
-      .attr("fill", function(d) {
-            return "url(#" + d.id + ")"
-          })
-      .style('z-index', '10')
-      .attr("r", function (d) { return d.r; })
-      .on("mouseover", function(e){
-        console.log(d3.element, 'elem')
-        tooltip.html("" + e.name + " is voted for <br><strong>" + e.sum + " BTC</strong>")
-          .style('top', d3.event.pageY - 6 + 'px')
-          .style('left', d3.event.pageX + 14 + 'px')
-          .style("display", "block");
-      })
-     .on("mouseout", function(){
-       tooltip.style("display", "none");
-     })
-
-
-     function prepare(object) {
-
-      var windowSizePX = 1140;
-      var elemWidth = 20
-      var countBlocks = windowSizePX / elemWidth;
-      var blockValue = 1000;
-      var blockSizePercent = Math.round((100 / countBlocks) * 1000) / 1000
-
-      var diapasonsArray = []
-
-      // range diapasons
-      for(var key = 0; key < countBlocks; key++) {
-        diapasonsArray.push([blockSizePercent * key, blockSizePercent * (key + 1)])
+    for(var i = 0; i <= 90; i++) {
+      var object = {
+        name: faker.name.findName(),
+        date: faker.date.future().getTime(),
+        avatar: generateImg(faker.name.findName()),
+        id: faker.commerce.product().toLowerCase(),
+        sum: Math.floor(Math.random() * (1000 - 1 + 1)) + 1
       }
+      array.push(object)
+    }
 
-      // calculate percents
-      for(var key = 0; key < object.length; key++){
-        object[key].percent = object[key].sum * 100 / blockValue;
-          object[key].r = 10
-          object[key].y = 265
-      }
 
-      // remember block number for each element
-      for(var key = 0; key < object.length; key++){
-        for(var j = 0; j < diapasonsArray.length; j++) {
-          if(object[key].percent >= diapasonsArray[j][0] && object[key].percent <= diapasonsArray[j][1]) {
-            object[key].blockNumber = j
-          }
+    var arr = _.sortBy(array, ['sum'])
+    var blockValue = 1000
 
-          if(key !== 0) {
-            if(object[key].test === object[key - 1].test) {
-              object[key - 1].x = object[key - 1].blockNumber * 20
+    var data = {
+      children: arr
+    }
+
+    var width = 1140,
+      height = 300,
+      color = d3.scale.category20();
+      var x = d3.time.scale()
+    	.domain([new Date(2013, 2, 1), new Date(2013, 2, 15) - 1])
+    	.range([0, width]);
+
+
+
+
+
+
+    var canvas = d3.select(".agree-chart")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .style("position", "relative")
+      .attr("class", "bubble-range")
+
+
+
+
+      var tooltip = d3.select(".agree-chart").append("div")
+                      .attr("class", "tooltip")
+                      .style("display", "none");
+
+
+
+    var pack = d3.layout.pack()
+      .size([width, height])
+      .padding(2);
+
+    var nodes = pack.nodes(data);
+
+
+
+    var node = canvas.selectAll(".node")
+      .data(prepare(nodes))
+      .enter()
+      .append("g")
+      .style('z-index', '1')
+      .attr("transform", function(d) {
+        return (d.depth !== 0) ? "translate(" + d.x + ", " + d.y + ")" : "translate(" + -999 + ", " + -999 + ")";
+      });
+
+      var x = d3.scale.identity().domain([0, width]),
+        y = d3.scale.identity().domain([0, height]);
+
+      var brush = d3.svg.brush()
+        .x(x)
+        .y(y)
+        .on("brushstart", brushstart)
+        .on("brush", brushmove)
+        .on("brushend", brushend)
+
+      var gBrush = canvas.append('g')
+        .attr("class", "brush")
+        .call(brush)
+
+
+
+      var defs = node.append("defs")
+        .append("svg:pattern")
+        .attr("id", function(d) {
+          return d.id;
+        })
+        .attr("width", 20)
+        .attr("height", 20)
+        .append("svg:image")
+        .attr("xlink:href", function(d) {
+          return d.avatar
+        })
+        .attr("width", 20)
+        .attr("height", 20)
+        .attr("x", 0)
+        .attr("y", 0);
+
+      var circle = node.append("circle")
+        .attr("r", function(d) { return 0;})
+        .attr("cx", 10)
+        .attr("cy", 20)
+        .attr("id", function(e) {
+          return +e.sum
+        })
+        .attr("fill", function(d) {
+              return "url(#" + d.id + ")"
+            })
+        .style('z-index', '10')
+        .attr("r", function (d) { return d.r; })
+        .on("mouseover", function(e){
+          console.log(d3.element, 'elem')
+          tooltip.html("" + e.name + " is voted for <br><strong>" + e.sum + " BTC</strong>")
+            .style('top', d3.event.pageY - 6 + 'px')
+            .style('left', d3.event.pageX + 14 + 'px')
+            .style("display", "block");
+        })
+       .on("mouseout", function(){
+         tooltip.style("display", "none");
+       })
+
+
+       var brushCell;
+
+         // Clear the previously-active brush, if any.
+         function brushstart(p) {
+           console.log("brush");
+           if (brushCell !== this) {
+             d3.select(brushCell).call(brush.clear());
+             //x.domain(domainByTrait[p.x]);
+             //y.domain(domainByTrait[p.y]);
+             brushCell = this;
+           }
+         }
+
+         // Highlight the selected circles.
+         function brushmove(p) {
+           //var event = d3.event.sourceEvent;
+           var e = brush.extent();
+           var leftX = e[0][0];
+           var leftY = e[0][1];
+
+           var rightX = e[1][0];
+           var rigthY = e[1][1] - 10;
+           var names = "";
+           array.map(function(elem){
+             var x = elem.x;
+             var y = elem.y;
+             if( x > leftX && x < rightX && y > leftY && y < rigthY){
+               names += elem.name;
+             }
+           })
+           $("#names").html(names);
+
+         }
+
+         // If the brush is empty, select all circles.
+         function brushend() {
+           if (brush.empty()) svg.selectAll(".hidden").classed("hidden", false);
+         }
+
+       function prepare(object) {
+
+        var windowSizePX = 1140;
+        var elemWidth = 20
+        var countBlocks = windowSizePX / elemWidth;
+        var blockValue = 1000;
+        var blockSizePercent = Math.round((100 / countBlocks) * 1000) / 1000
+
+        var diapasonsArray = []
+
+        // range diapasons
+        for(var key = 0; key < countBlocks; key++) {
+          diapasonsArray.push([blockSizePercent * key, blockSizePercent * (key + 1)])
+        }
+
+        // calculate percents
+        for(var key = 0; key < object.length; key++){
+          object[key].percent = object[key].sum * 100 / blockValue;
+            object[key].r = 10
+            object[key].y = 265
+        }
+
+        // remember block number for each element
+        for(var key = 0; key < object.length; key++){
+          for(var j = 0; j < diapasonsArray.length; j++) {
+            if(object[key].percent >= diapasonsArray[j][0] && object[key].percent <= diapasonsArray[j][1]) {
+              object[key].blockNumber = j
+            }
+
+            if(key !== 0) {
+              if(object[key].test === object[key - 1].test) {
+                object[key - 1].x = object[key - 1].blockNumber * 20
+              }
             }
           }
         }
-      }
 
-      // recalculate Y coord
-      var previous_x = -1;
-      var offset = 0;
+        // recalculate Y coord
+        var previous_x = -1;
+        var offset = 0;
 
-      for( var i = 0; i < object.length; i++ ){
-        if(isNaN(object[i].x)) object[i].x = object[i].blockNumber * 20;
-        var x = object[i].x;
-        if(x === previous_x) {
-          offset += 20;
-          object[i].y -= offset;
-          if(offset % 40 !== 0){
-            object[i].x += 10;
+        for( var i = 0; i < object.length; i++ ){
+          if(isNaN(object[i].x)) object[i].x = object[i].blockNumber * 20;
+          var x = object[i].x;
+          if(x === previous_x) {
+            offset += 20;
+            object[i].y -= offset;
+            if(offset % 40 !== 0){
+              object[i].x += 10;
+            }
           }
+          else {
+            offset = 0;
+          }
+          previous_x = x;
         }
-        else {
-          offset = 0;
-        }
-        previous_x = x;
+
+          return object
       }
 
-        return object
-    }
-
-  </script>
+    </script>
 </body>
 </html>
